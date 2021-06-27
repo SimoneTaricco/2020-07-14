@@ -8,6 +8,8 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 import it.polito.tdp.PremierLeague.model.Model;
+import it.polito.tdp.PremierLeague.model.Team;
+import it.polito.tdp.PremierLeague.model.TeamAndScore;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -35,7 +37,7 @@ public class FXMLController {
     private Button btnSimula; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbSquadra"
-    private ComboBox<?> cmbSquadra; // Value injected by FXMLLoader
+    private ComboBox<Team> cmbSquadra; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtN"
     private TextField txtN; // Value injected by FXMLLoader
@@ -48,16 +50,59 @@ public class FXMLController {
 
     @FXML
     void doClassifica(ActionEvent event) {
+    	
+    	txtResult.clear();
+    	
+    	try {    	
+    		Team partenza = this.cmbSquadra.getValue();
+    		
+    		txtResult.appendText("SQUADRE MIGLIORI:\n");
+    		for (TeamAndScore t:model.getMigliori(partenza))
+    			txtResult.appendText(t.getTeam() + " (" + t.getScore() + ")\n");
+    		
+    		txtResult.appendText("\nSQUADRE PEGGIORI:\n");
+    		for (TeamAndScore t:model.getPeggiori(partenza))
+    			txtResult.appendText(t.getTeam() + " (" + t.getScore() + ")\n");
+    		
+    	} catch (NullPointerException n) {
+    		txtResult.setText("Valore di partenza non scelto!");
+    		return;
+    	}
 
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-
+    	
+    	model.creaGrafo();
+    	this.cmbSquadra.getItems().addAll(model.vertici());
+    	
+    	this.txtResult.setText("Grafo creato!\nNumero vertici: " + model.vertici().size() +"\nNumero archi: " + model.numeroArchi());
     }
 
     @FXML
     void doSimula(ActionEvent event) {
+    	
+    	try {
+    		
+    		String enne = this.txtN.getText();
+    		String soglia = this.txtX.getText();
+    		
+    		int n = Integer.parseInt(enne);
+    		int x = Integer.parseInt(soglia);
+    		
+    		model.simula(n, x);
+    		
+    		this.txtResult.setText("Reporter ad ogni partita: " + model.getReportPerPartita() + "\nNumero partite con soglia reporter non raggiunta: " + model.getSottoSoglia());
+    		
+    	} catch (NullPointerException e) {
+    		e.printStackTrace();
+    		txtResult.setText("Valori in input mancanti");
+    		return;
+    	} catch (NumberFormatException e) {
+    		txtResult.setText("Valore numerico non inserito correttamente.");
+    		return;
+    	}
 
     }
 

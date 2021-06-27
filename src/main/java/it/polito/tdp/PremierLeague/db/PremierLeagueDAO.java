@@ -5,8 +5,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import it.polito.tdp.PremierLeague.model.Action;
+import it.polito.tdp.PremierLeague.model.Adiacenza;
 import it.polito.tdp.PremierLeague.model.Match;
 import it.polito.tdp.PremierLeague.model.Player;
 import it.polito.tdp.PremierLeague.model.Team;
@@ -101,6 +105,49 @@ public class PremierLeagueDAO {
 				
 				
 				result.add(match);
+
+			}
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public Map<Team,Integer> getPunteggi(Map<Integer,Team> lista){
+		
+		String sql = "SELECT m.TeamHomeID AS id1, m.TeamAwayID AS id2, m.ResultOfTeamHome AS esito "
+				+ "FROM matches m";
+		
+		//List<Adiacenza> result = new ArrayList<Adiacenza>();
+		Map<Team,Integer> result = new HashMap<Team,Integer>();
+		
+		for (Team t:lista.values()) {
+			result.put(t, 0);
+		}
+		
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+				
+				if (lista.containsKey(res.getInt("id1")) && lista.containsKey(res.getInt("id2"))) {
+				
+				if (res.getInt("esito")==0) {
+					result.put(lista.get(res.getInt("id1")), result.get(lista.get(res.getInt("id1")))+1);
+					result.put(lista.get(res.getInt("id2")), result.get(lista.get(res.getInt("id2")))+1);
+				} else if (res.getInt("esito")==1) {
+					result.put(lista.get(res.getInt("id1")), result.get(lista.get(res.getInt("id1")))+3);
+					//result.put(lista.get(res.getInt("id2")), result.get(lista.get(res.getInt("id2")))+0);
+				} else if (res.getInt("esito")==-1) {
+					//result.put(lista.get(res.getInt("id1")), result.get(lista.get(res.getInt("id1")))+0);
+					result.put(lista.get(res.getInt("id2")), result.get(lista.get(res.getInt("id2")))+3);
+				}	
+			}
 
 			}
 			conn.close();
